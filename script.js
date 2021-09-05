@@ -1,6 +1,7 @@
 // Song Class: Represents a Song
 class Song {
-    constructor(singer, songName, url) {
+    constructor(id, singer, songName, url) {
+        this.id = id;
         this.singer = singer;
         this.songName = songName;
         this.url = url;
@@ -21,12 +22,14 @@ class UI {
         const list = document.querySelector("#song-list");
         const row = document.createElement("tr");
 
+        row.setAttribute("data-id", song.id);
+
         row.innerHTML = `
         <td>${song.singer}</td>
         <td>${song.songName}</td>
         <td>${song.url}</td>
         <td><button class='fas fa-trash bg-transparent border-0 text-white delete'></button></td>
-    `;
+        `;
         list.appendChild(row);
     }
 
@@ -54,6 +57,10 @@ class UI {
             div.remove();
         }, 3000);
     }
+
+    static createId() {
+        return "_" + Math.random().toString(36).substr(2, 9);
+    }
 }
 
 // Store Class : Handles Storage
@@ -74,10 +81,10 @@ class Store {
         localStorage.setItem("songs", JSON.stringify(songs));
     }
 
-    static removeSongs(url) {
+    static removeSongs(id) {
         let songs = Store.getSongs();
         songs.forEach((song, index) => {
-            if (song.url === url) {
+            if (song.id === id) {
                 songs.splice(index, 1);
             }
         });
@@ -93,16 +100,17 @@ document.querySelector("#music-form").addEventListener("submit", (e) => {
     e.preventDefault();
 
     // Get Form Values
+    const id = UI.createId();
     const singer = document.querySelector("#singer").value;
     const songName = document.querySelector("#song-name").value;
     const url = document.querySelector("#url").value;
 
     // Validate
-    if (singer === "" || songName === "" || url === "") {
+    if (singer === "" || songName === "") {
         UI.showAlert("Please Fill In The Inputs", "danger");
     } else {
         // Instantiate A Song
-        const song = new Song(singer, songName, url);
+        const song = new Song(id, singer, songName, url);
 
         // Add Song To UI
         UI.AddSongToList(song);
@@ -125,7 +133,7 @@ document.querySelector("#song-list").addEventListener("click", (e) => {
     // Remove Song From UI
     UI.removeSong(e.target);
     // Remove Song From Store
-    Store.removeSongs(e.target.parentElement.previousElementSibling.textContent);
+    Store.removeSongs(e.target.parentElement.parentElement.dataset.id);
 
     // Show Success Message
     UI.showAlert("The Song Has Been Deleted", "success");
