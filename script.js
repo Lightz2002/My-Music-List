@@ -1,3 +1,10 @@
+const container = document.querySelector(".container");
+const singerInput = document.querySelector("#singer");
+const songNameInput = document.querySelector("#song-name");
+const urlInput = document.querySelector("#url");
+const searchInput = document.querySelector(".search");
+const form = document.querySelector("#music-form");
+const songList = document.querySelector("#song-list");
 // Song Class: Represents a Song
 class Song {
     constructor(id, singer, songName, url) {
@@ -19,24 +26,24 @@ class UI {
     }
 
     static AddSongToList(song) {
-        const list = document.querySelector("#song-list");
         const row = document.createElement("tr");
 
         row.setAttribute("data-id", song.id);
-
+        row.classList.add("song-list-item");
         row.innerHTML = `
         <td>${song.singer}</td>
         <td>${song.songName}</td>
         <td>${song.url}</td>
         <td><button class='fas fa-trash bg-transparent border-0 text-white delete'></button></td>
         `;
-        list.appendChild(row);
+
+        songList.appendChild(row);
     }
 
     static clearInputs() {
-        document.querySelector("#singer").value = "";
-        document.querySelector("#song-name").value = "";
-        document.querySelector("#url").value = "";
+        singerInput.value = "";
+        songNameInput.value = "";
+        urlInput.value = "";
     }
 
     static removeSong(e) {
@@ -49,8 +56,6 @@ class UI {
         const div = document.createElement("div");
         div.className = `alert alert-${className}`;
         div.appendChild(document.createTextNode(message));
-        const container = document.querySelector(".container");
-        const form = document.querySelector("#music-form");
         container.insertBefore(div, form);
 
         setTimeout(() => {
@@ -60,6 +65,20 @@ class UI {
 
     static createId() {
         return "_" + Math.random().toString(36).substr(2, 9);
+    }
+
+    static filterSong(input) {
+        const songs = Store.getSongs();
+
+        songs.forEach((song) => {
+            if (
+                song.singer.indexOf(input) >= 0 ||
+                song.songName.indexOf(input) >= 0 ||
+                song.url.indexOf(input) >= 0
+            ) {
+                UI.AddSongToList(song);
+            }
+        });
     }
 }
 
@@ -96,14 +115,13 @@ class Store {
 document.addEventListener("DOMContentLoaded", UI.displaySongs());
 
 // Event : Add A Song
-document.querySelector("#music-form").addEventListener("submit", (e) => {
+form.addEventListener("submit", function (e) {
     e.preventDefault();
-
     // Get Form Values
     const id = UI.createId();
-    const singer = document.querySelector("#singer").value;
-    const songName = document.querySelector("#song-name").value;
-    const url = document.querySelector("#url").value;
+    const singer = singerInput.value;
+    const songName = songNameInput.value;
+    const url = urlInput.value;
 
     // Validate
     if (singer === "" || songName === "") {
@@ -127,9 +145,13 @@ document.querySelector("#music-form").addEventListener("submit", (e) => {
 });
 
 // Event: Search A Song
+searchInput.addEventListener("input", function (e) {
+    songList.innerHTML = "";
+    UI.filterSong(searchInput.value);
+});
 
 // Event : Remove A Song
-document.querySelector("#song-list").addEventListener("click", (e) => {
+songList.addEventListener("click", function (e) {
     // Remove Song From UI
     UI.removeSong(e.target);
     // Remove Song From Store
